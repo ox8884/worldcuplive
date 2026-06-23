@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>World Cup Live Dashboard</title>
+    <link rel="preconnect" href="https://site.api.espn.com" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="World Cup Live home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>WorldCup Live</span>
+      </a>
+      <nav class="nav-links" aria-label="페이지 섹션">
+        <a href="#matches">경기</a>
+        <a href="#scorers">득점</a>
+        <a href="#schedule">일정</a>
+      </nav>
+      <button class="button button--ghost button--small" id="refreshButton" type="button">새로고침</button>
+    </header>
+
+    <main class="page-shell" id="top">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero__copy">
+          <p class="eyebrow">2026 FIFA World Cup</p>
+          <h1 id="page-title">월드컵 매치센터</h1>
+          <p class="hero__description">
+            오늘 경기, 전체 일정, 득점 순위, 라인업과 득점 타임라인까지 한 화면에서 빠르게 확인합니다.
+          </p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="#matches">오늘 경기 보기</a>
+            <a class="button button--secondary" href="#schedule">전체 일정</a>
+          </div>
+        </div>
+        <aside class="live-panel" aria-label="현재 요약">
+          <div class="live-panel__top">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span>Live now</span>
+          </div>
+          <strong id="liveCount">-</strong>
+          <p id="summaryText">데이터를 불러오는 중</p>
+        </aside>
+      </section>
+
+      <section class="status-grid" aria-label="대회 요약">
+        <article class="status-card">
+          <span>오늘 경기</span>
+          <strong id="totalCount">-</strong>
+        </article>
+        <article class="status-card">
+          <span>예정 경기</span>
+          <strong id="scheduledCount">-</strong>
+        </article>
+        <article class="status-card">
+          <span>종료 경기</span>
+          <strong id="finishedCount">-</strong>
+        </article>
+        <article class="status-card status-card--wide">
+          <span>마지막 업데이트</span>
+          <strong id="updatedAt">-</strong>
+        </article>
+      </section>
+
+      <section class="dashboard-grid" aria-label="월드컵 대시보드">
+        <section class="panel panel--matches" id="matches" aria-labelledby="matches-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Matchday</p>
+              <h2 id="matches-title">오늘의 경기</h2>
+            </div>
+            <p class="source-note">카드를 누르면 득점 기록, 선발 라인업, 벤치 명단을 볼 수 있습니다.</p>
+          </div>
+          <div class="alert" id="alert" role="status" hidden></div>
+          <div class="matches" id="matchesList" aria-live="polite"></div>
+        </section>
+
+        <aside class="panel panel--scorers" id="scorers" aria-labelledby="scorers-title">
+          <div class="section-heading section-heading--compact">
+            <div>
+              <p class="eyebrow">Golden Boot</p>
+              <h2 id="scorers-title">득점 순위</h2>
+            </div>
+          </div>
+          <ol class="scorers-list" id="scorersList" aria-live="polite"></ol>
+        </aside>
+      </section>
+
+      <section class="panel panel--schedule" id="schedule" aria-labelledby="schedule-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Tournament Calendar</p>
+            <h2 id="schedule-title">전체 경기 일정</h2>
+          </div>
+          <p class="source-note">날짜별로 묶어 빠르게 훑어볼 수 있습니다.</p>
+        </div>
+        <div class="schedule-list" id="scheduleList" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <template id="matchTemplate">
+      <article class="match-card" tabindex="0" role="button">
+        <div class="match-card__topline">
+          <span class="badge"></span>
+          <time></time>
+        </div>
+        <div class="teams"></div>
+        <p class="venue"></p>
+        <span class="card-action">상세 보기</span>
+      </article>
+    </template>
+
+    <dialog class="match-dialog" id="matchDialog" aria-labelledby="dialogTitle">
+      <div class="match-dialog__content">
+        <button class="dialog-close" id="dialogClose" type="button" aria-label="닫기">×</button>
+        <div id="matchDetail"></div>
+      </div>
+    </dialog>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

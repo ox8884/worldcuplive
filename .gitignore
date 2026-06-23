@@ -1,0 +1,5 @@
+.vercel
+.codegraph
+node_modules
+final-local-*.png
+deployed-mobile.png
