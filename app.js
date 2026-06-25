@@ -150,9 +150,16 @@ function renderStats(events) {
   elements.updatedAt.textContent = new Intl.DateTimeFormat("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
   }).format(new Date());
-  elements.summaryText.textContent = live > 0 ? "라이브 경기가 진행 중입니다." : "현재 진행 중인 경기는 없습니다.";
+  if (live > 0) {
+    elements.summaryText.textContent = `${live}경기가 진행 중입니다. 득점 흐름과 라인업을 바로 확인하세요.`;
+    return;
+  }
+  if (scheduled > 0) {
+    elements.summaryText.textContent = `진행 중인 경기는 없고 예정 경기가 ${scheduled}개 남아 있습니다.`;
+    return;
+  }
+  elements.summaryText.textContent = finished > 0 ? "오늘 경기는 모두 종료됐습니다." : "표시할 오늘 경기를 준비 중입니다.";
 }
 
 function renderMatches(events) {
@@ -166,7 +173,9 @@ function renderMatches(events) {
     return;
   }
 
-  events.forEach((event) => {
+  const nextScheduledIndex = events.findIndex((event) => getState(event) === "pre");
+
+  events.forEach((event, index) => {
     const card = elements.template.content.firstElementChild.cloneNode(true);
     const badge = card.querySelector(".badge");
     const time = card.querySelector("time");
@@ -176,6 +185,8 @@ function renderMatches(events) {
     const status = getStatus(event);
 
     card.dataset.eventId = event.id;
+    card.classList.toggle("is-live", state === "in");
+    card.classList.toggle("is-next", state === "pre" && index === nextScheduledIndex);
     badge.textContent = status.type?.shortDetail || status.type?.description || state;
     badge.classList.toggle("is-live", state === "in");
     badge.classList.toggle("is-final", state === "post");
@@ -195,6 +206,7 @@ function renderMatches(events) {
     });
 
     venue.textContent = `${eventVenue(event)} · ${compactNote(event)}`;
+    card.querySelector(".card-action").textContent = state === "pre" ? "프리뷰 보기" : "기록 보기";
     card.addEventListener("click", () => openMatchDetail(event.id));
     card.addEventListener("keydown", (eventKey) => {
       if (eventKey.key === "Enter" || eventKey.key === " ") {

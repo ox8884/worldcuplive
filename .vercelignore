@@ -1,0 +1,10 @@
+.git
+.codegraph
+.omo
+.omo-red-*.png
+DESIGN.md
+*.log
+final-local-*.png
+deployed-mobile.png
+*-preview.png
+node_modules

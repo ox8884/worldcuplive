@@ -3,3 +3,7 @@
 node_modules
 final-local-*.png
 deployed-mobile.png
+.omo/drafts/
+.omo/evidence/
+.omo/notepad-*.md
+.omo-red-*.png
