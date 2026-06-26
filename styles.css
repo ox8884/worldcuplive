@@ -853,6 +853,38 @@ h2 {
   white-space: nowrap;
 }
 
+.schedule-section-header {
+  margin-bottom: 4px;
+  padding-top: 8px;
+}
+
+.schedule-section-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+
+.schedule-section-header + .schedule-day {
+  margin-top: 0;
+}
+
+.schedule-item--past {
+  grid-template-columns: 56px 72px minmax(0, 1fr) auto;
+}
+
+.schedule-item__score {
+  font-family: "JetBrains Mono", "Pretendard Variable", monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 0.94rem;
+  color: var(--text-heading);
+  text-align: center;
+  background: rgba(232, 197, 71, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
 .match-dialog {
   width: min(1080px, calc(100% - 28px));
   max-height: min(880px, calc(100vh - 32px));
@@ -1223,6 +1255,14 @@ h2 {
 
   .schedule-item {
     grid-template-columns: 50px minmax(0, 1fr);
+  }
+
+  .schedule-item--past {
+    grid-template-columns: 46px 64px minmax(0, 1fr);
+  }
+
+  .schedule-item--past em {
+    grid-column: 3;
   }
 
   .schedule-item em {

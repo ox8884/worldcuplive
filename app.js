@@ -265,49 +265,101 @@ function renderScorers(scorers) {
   });
 }
 
-function renderSchedule(schedule) {
-  elements.scheduleList.replaceChildren();
-  const ordered = [...schedule].sort((a, b) => new Date(a.date) - new Date(b.date));
-  const groups = new Map();
+function renderScheduleDayGroup(events, isPast) {
+  const section = document.createElement("section");
+  section.className = "schedule-day";
 
-  ordered.forEach((event) => {
-    const key = formatDateKey(event.date);
-    const group = groups.get(key) ?? [];
-    group.push(event);
-    groups.set(key, group);
-  });
+  const title = document.createElement("div");
+  title.className = "schedule-day__title";
+  title.innerHTML = `<strong>${formatDateLabel(events[0].date)}</strong><span>${events.length}경기</span>`;
 
-  for (const events of groups.values()) {
-    const section = document.createElement("section");
-    section.className = "schedule-day";
+  const list = document.createElement("div");
+  list.className = "schedule-day__matches";
 
-    const title = document.createElement("div");
-    title.className = "schedule-day__title";
-    title.innerHTML = `<strong>${formatDateLabel(events[0].date)}</strong><span>${events.length}경기</span>`;
+  events.forEach((event) => {
+    const state = getState(event);
+    const status = getStatus(event);
+    const teams = sortedTeams(event);
+    const item = document.createElement("button");
+    item.className = `schedule-item${isPast ? " schedule-item--past" : ""}`;
+    item.type = "button";
 
-    const list = document.createElement("div");
-    list.className = "schedule-day__matches";
-
-    events.forEach((event) => {
-      const item = document.createElement("button");
-      item.className = "schedule-item";
-      item.type = "button";
-      const teams = sortedTeams(event).map((competitor) => competitor.team?.abbreviation || competitor.team?.displayName || "TBD");
-      const status = getStatus(event);
+    if (isPast) {
+      const [home, away] = teams;
       item.innerHTML = `
         <span>${formatTime(event.date, { month: undefined, day: undefined })}</span>
-        <strong>${teams.join(" vs ")}</strong>
+        <span class="schedule-item__score">${home.score ?? "-"} : ${away.score ?? "-"}</span>
+        <strong>${home.team?.abbreviation || home.team?.displayName || "TBD"} vs ${away.team?.abbreviation || away.team?.displayName || "TBD"}</strong>
+        <em>${status.type?.shortDetail || "종료"}</em>
+      `;
+    } else {
+      const teamNames = teams.map((competitor) => competitor.team?.abbreviation || competitor.team?.displayName || "TBD");
+      item.innerHTML = `
+        <span>${formatTime(event.date, { month: undefined, day: undefined })}</span>
+        <strong>${teamNames.join(" vs ")}</strong>
         <em>${status.type?.shortDetail || compactNote(event)}</em>
       `;
-      item.addEventListener("click", () => openMatchDetail(event.id));
-      list.append(item);
+    }
+
+    item.addEventListener("click", () => openMatchDetail(event.id));
+    list.append(item);
+  });
+
+  section.append(title, list);
+  return section;
+}
+
+function renderSchedule(schedule) {
+  elements.scheduleList.replaceChildren();
+
+  const now = new Date();
+  const upcoming = schedule.filter((event) => getState(event) !== "post" && new Date(event.date) >= now);
+  const past = schedule.filter((event) => getState(event) === "post" || new Date(event.date) < now);
+
+  const upcomingGroups = new Map();
+  const pastGroups = new Map();
+
+  upcoming
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .forEach((event) => {
+      const key = formatDateKey(event.date);
+      const group = upcomingGroups.get(key) ?? [];
+      group.push(event);
+      upcomingGroups.set(key, group);
     });
 
-    section.append(title, list);
-    elements.scheduleList.append(section);
+  past
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .forEach((event) => {
+      const key = formatDateKey(event.date);
+      const group = pastGroups.get(key) ?? [];
+      group.push(event);
+      pastGroups.set(key, group);
+    });
+
+  if (upcomingGroups.size > 0) {
+    const upcomingHeader = document.createElement("div");
+    upcomingHeader.className = "schedule-section-header";
+    upcomingHeader.innerHTML = "<h3>예정 경기</h3>";
+    elements.scheduleList.append(upcomingHeader);
+
+    for (const events of upcomingGroups.values()) {
+      elements.scheduleList.append(renderScheduleDayGroup(events, false));
+    }
   }
 
-  if (groups.size === 0) {
+  if (pastGroups.size > 0) {
+    const pastHeader = document.createElement("div");
+    pastHeader.className = "schedule-section-header";
+    pastHeader.innerHTML = "<h3>지난 경기</h3>";
+    elements.scheduleList.append(pastHeader);
+
+    for (const events of pastGroups.values()) {
+      elements.scheduleList.append(renderScheduleDayGroup(events, true));
+    }
+  }
+
+  if (upcomingGroups.size === 0 && pastGroups.size === 0) {
     const empty = document.createElement("p");
     empty.className = "muted";
     empty.textContent = "표시할 전체 일정이 없습니다.";
