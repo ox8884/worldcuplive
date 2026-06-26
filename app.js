@@ -233,11 +233,11 @@ function renderMatches(events) {
   });
 }
 
-function playerHeadshot(scorer, index) {
-  if (index > 2) return "";
+function playerHeadshot(scorer) {
   if (scorer.headshot) return scorer.headshot;
   const id = String(scorer.id ?? "");
-  return /^\d+$/.test(id) ? `https://a.espncdn.com/i/headshots/soccer/players/full/${id}.png` : "";
+  if (/^\d+$/.test(id)) return `https://a.espncdn.com/i/headshots/soccer/players/full/${id}.png`;
+  return `https://placehold.co/64x64/2d4538/e8c547?text=${encodeURIComponent(scorer.name?.slice(0, 1) ?? "P")}`;
 }
 
 function renderScorers(scorers) {
@@ -246,14 +246,14 @@ function renderScorers(scorers) {
 
   list.slice(0, 5).forEach((scorer, index) => {
     const item = document.createElement("li");
-    const headshot = playerHeadshot(scorer, index);
+    const headshot = playerHeadshot(scorer);
     item.className = `scorer-row${index < 3 ? " is-podium" : ""}`;
     item.innerHTML = `
       <span class="rank">${index + 1}</span>
       <img class="team-logo" alt="" src="${teamLogo({ logo: scorer.teamLogo, abbreviation: scorer.team?.slice(0, 3) })}" loading="lazy" />
       <span class="scorer-identity">
         <span class="scorer-main">
-          ${headshot ? `<img class="scorer-photo" alt="" src="${headshot}" loading="lazy" onerror="this.remove()" />` : ""}
+          <img class="scorer-photo" alt="" src="${headshot}" loading="lazy" onerror="this.src='https://placehold.co/64x64/2d4538/e8c547?text=${encodeURIComponent(scorer.name?.slice(0, 1) ?? "P")}'" />
           <span class="scorer-name">${scorer.name}</span>
         </span>
         <span class="scorer-team">${scorer.team}</span>

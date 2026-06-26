@@ -69,13 +69,22 @@ function collectScorers(summary, event) {
   return scorers;
 }
 
-async function buildTopScorers(events) {
-  const completed = events
-    .filter((event) => event.competitions?.[0]?.status?.type?.state === "post")
-    .slice(-36);
-  const summaries = await Promise.allSettled(
-    completed.map((event) => fetchJson(`${SUMMARY_URL}${encodeURIComponent(event.id)}`).then((summary) => ({ summary, event }))),
+async function fetchSummaries(events) {
+  return Promise.allSettled(
+    events.map((event) => fetchJson(`${SUMMARY_URL}${encodeURIComponent(event.id)}`).then((summary) => ({ summary, event }))),
   );
+}
+
+async function buildTopScorers(events) {
+  const completed = events.filter((event) => event.competitions?.[0]?.status?.type?.state === "post");
+  const BATCH_SIZE = 20;
+  const summaries = [];
+
+  for (let i = 0; i < completed.length; i += BATCH_SIZE) {
+    const batchResults = await fetchSummaries(completed.slice(i, i + BATCH_SIZE));
+    summaries.push(...batchResults);
+  }
+
   const table = new Map();
 
   for (const result of summaries) {
