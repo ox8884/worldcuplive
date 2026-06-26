@@ -61,6 +61,7 @@ const elements = {
   scorersList: document.querySelector("#scorersList"),
   summaryText: document.querySelector("#summaryText"),
   template: document.querySelector("#matchTemplate"),
+  skeletonTemplate: document.querySelector("#skeletonTemplate"),
   totalCount: document.querySelector("#totalCount"),
   updatedAt: document.querySelector("#updatedAt"),
 };
@@ -152,14 +153,26 @@ function renderStats(events) {
     minute: "2-digit",
   }).format(new Date());
   if (live > 0) {
-    elements.summaryText.textContent = `${live}경기가 진행 중입니다. 득점 흐름과 라인업을 바로 확인하세요.`;
+    elements.summaryText.textContent = `${live}경기가 진행 중입니다.`;
     return;
   }
   if (scheduled > 0) {
-    elements.summaryText.textContent = `진행 중인 경기는 없고 예정 경기가 ${scheduled}개 남아 있습니다.`;
+    elements.summaryText.textContent = `예정 경기가 ${scheduled}개 남아 있습니다.`;
     return;
   }
-  elements.summaryText.textContent = finished > 0 ? "오늘 경기는 모두 종료됐습니다." : "표시할 오늘 경기를 준비 중입니다.";
+  elements.summaryText.textContent = finished > 0 ? "오늘 경기는 모두 종료됐습니다." : "오늘 경기를 준비 중입니다.";
+}
+
+/* ── Skeleton loader ── */
+
+function showSkeletons(count = 3) {
+  if (!elements.skeletonTemplate) return;
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const clone = elements.skeletonTemplate.content.firstElementChild.cloneNode(true);
+    fragment.append(clone);
+  }
+  elements.matchesList.replaceChildren(fragment);
 }
 
 function renderMatches(events) {
@@ -177,6 +190,8 @@ function renderMatches(events) {
 
   events.forEach((event, index) => {
     const card = elements.template.content.firstElementChild.cloneNode(true);
+    card.style.animationDelay = `${index * 60}ms`;
+
     const badge = card.querySelector(".badge");
     const time = card.querySelector("time");
     const teams = card.querySelector(".teams");
@@ -410,6 +425,9 @@ async function fetchScoreboard() {
 async function loadScoreboard() {
   elements.refreshButton.disabled = true;
   elements.refreshButton.textContent = "불러오는 중...";
+
+  /* Show skeleton loaders while data is being fetched */
+  showSkeletons(3);
 
   try {
     currentPayload = await fetchScoreboard();
